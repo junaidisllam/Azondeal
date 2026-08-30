@@ -1,0 +1,258 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Account_userId_fkey")
+
+  @@unique([provider, providerAccountId], map: "Account_provider_providerAccountId_key")
+  @@index([userId], map: "Account_userId_fkey")
+}
+
+model admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique(map: "Admin_email_key")
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model category {
+  id             Int        @id @default(autoincrement())
+  name           String     @unique(map: "Category_name_key")
+  slug           String     @unique(map: "Category_slug_key")
+  parentId       Int?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime @updatedAt
+  imageLarge     String?    @db.Text
+  imageMedium    String?    @db.Text
+  imageSmall     String?    @db.Text
+  searchKeyword  String?    @db.Text
+  seoDescription String?    @db.Text
+  seoKeywords    String?    @db.Text
+  seoTitle       String?    @db.Text
+  category       category?  @relation("categoryTocategory", fields: [parentId], references: [id], map: "Category_parentId_fkey")
+  other_category category[] @relation("categoryTocategory")
+  deal           deal[]
+
+  @@index([parentId], map: "Category_parentId_fkey")
+}
+
+model collection {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique(map: "Collection_name_key")
+  slug      String   @unique(map: "Collection_slug_key")
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deal      deal[]
+}
+
+model contactmessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model deal {
+  id                              Int         @id @default(autoincrement())
+  asin                            String      @unique(map: "Deal_asin_key")
+  title                           String      @db.Text
+  image                           String      @db.Text
+  image_ids                       String?     @db.LongText
+  price                           Float
+  discounted_price                Float
+  list_price                      Float?
+  discount_percentage             Float?
+  list_price_savings_percentage   Float?
+  price_drop_percentage           Float?
+  coupon_value                    String?
+  promo_code                      String?
+  promo_string                    String?
+  encrypted_promo                 String?
+  last_verified_promo             String?
+  codes                           String?     @db.LongText
+  avg_rating                      Float?
+  ratings_count                   Int?
+  likes_count                     Int?
+  bought_past_month               Int?
+  bitwise_type                    Int?
+  campaign_id                     String?
+  merchant_id                     String?
+  merchant_name                   String?
+  deal_hash                       String?     @db.Text
+  custom_text                     String?     @db.Text
+  creator_commission_percentage   Float?
+  input_commission                Float?
+  external_provider_commission    Float?
+  external_provider_owed_per_sale Float?
+  owed_per_sale_dollars           Float?
+  expected_revenue_per_click      Float?
+  deal_score                      Float?
+  lgbm_score                      Float?
+  pop_score                       Float?
+  recc_score                      Float?
+  relevance_score                 Float?
+  budget_availability_score       String?
+  has_brand_deal                  Boolean     @default(false)
+  has_coupon                      Boolean     @default(false)
+  has_extra_discount              Boolean     @default(false)
+  has_lightning_deal              Boolean     @default(false)
+  has_price_drop                  Boolean     @default(false)
+  has_promo_code                  Boolean     @default(false)
+  is_amazon_choice                Boolean     @default(false)
+  is_brand_name                   Boolean     @default(false)
+  is_data_amz_compatible          Boolean     @default(false)
+  is_deal                         Boolean     @default(false)
+  is_early_access                 Boolean     @default(false)
+  is_fba                          Boolean     @default(false)
+  is_good_deal                    Boolean     @default(false)
+  is_hot                          Boolean     @default(false)
+  is_parent_asin                  Boolean     @default(false)
+  is_popular                      Boolean     @default(false)
+  lowest_price_12_months          Boolean     @default(false)
+  lowest_price_3_months           Boolean     @default(false)
+  num_variations                  Int?
+  parent_asin                     String?
+  variation_asins                 String?     @db.LongText
+  smart_slug                      String?
+  sns_base_discount               String?
+  sns_base_price                  Float?
+  sns_coupon_value                String?
+  stacking_discount_percentage    Float?
+  today_top_deals_position        Int?        @default(-1)
+  extra_discount_amount           String?
+  categoryId                      Int?
+  collectionId                    Int?
+  expired_at                      DateTime?
+  last_updated                    DateTime?   @updatedAt
+  created_at                      DateTime    @default(now())
+  updated_at                      DateTime?
+  category                        category?   @relation(fields: [categoryId], references: [id], map: "Deal_categoryId_fkey")
+  collection                      collection? @relation(fields: [collectionId], references: [id], map: "Deal_collectionId_fkey")
+  saveddeal                       saveddeal[]
+
+  @@index([categoryId], map: "Deal_categoryId_fkey")
+  @@index([collectionId], map: "Deal_collectionId_fkey")
+}
+
+model heroslide {
+  id        Int      @id @default(autoincrement())
+  desktop   String   @db.LongText
+  mobile    String   @db.LongText
+  alt       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  link      String?  @db.Text
+}
+
+model saveddeal {
+  id        String   @id
+  userId    String
+  dealId    Int
+  createdAt DateTime @default(now())
+  deal      deal     @relation(fields: [dealId], references: [id], onDelete: Cascade, map: "SavedDeal_dealId_fkey")
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "SavedDeal_userId_fkey")
+
+  @@unique([userId, dealId], map: "SavedDeal_userId_dealId_key")
+  @@index([dealId], map: "SavedDeal_dealId_fkey")
+}
+
+model searchhistory {
+  id        Int      @id @default(autoincrement())
+  query     String
+  device    String?  @db.Text
+  page      String?  @db.Text
+  userId    String?
+  createdAt DateTime @default(now())
+  ip        String?
+}
+
+model session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique(map: "Session_sessionToken_key")
+  userId       String
+  expires      DateTime
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_userId_fkey")
+
+  @@index([userId], map: "Session_userId_fkey")
+}
+
+model setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique(map: "Setting_key_key")
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model user {
+  id            String      @id @default(cuid())
+  name          String?
+  email         String?     @unique(map: "User_email_key")
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String      @default("user")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  account       account[]
+  saveddeal     saveddeal[]
+  session       session[]
+}
+
+model verificationtoken {
+  identifier String
+  token      String   @unique(map: "VerificationToken_token_key")
+  expires    DateTime
+
+  @@unique([identifier, token], map: "VerificationToken_identifier_token_key")
+}
+
+model affiliateclick {
+  id          Int      @id @default(autoincrement())
+  asin        String
+  title       String?  @db.Text
+  ip          String?
+  device      String?  @db.Text
+  country     String?
+  page        String?  @db.Text
+  type        String?
+  affiliateId String?
+  merchantId  String?
+  userId      String?
+  createdAt   DateTime @default(now())
+}
+
+model realtimetraffic {
+  id          Int      @id @default(autoincrement())
+  visitorId   String?  @db.VarChar(255)
+  userId      String?  @db.VarChar(255)
+  sessionId   String   @unique(map: "RealtimeTraffic_sessionId_key")
+  path        String?  @db.Text
+  ip          String?
+  device      String?  @db.Text
+  countryCode String?  @db.VarChar(10)
+  updatedAt   DateTime @updatedAt
+}
